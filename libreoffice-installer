@@ -492,7 +492,7 @@ detect_lo_from_repo(){
 # Check if LO is already installed from DF website
 # Sprawdzanie czy LO ze strony DF jest zainstalowane
 detect_lo_from_df_website(){
-  lofromdffolder=`ls /opt | grep libreoffice`
+  lofromdffolder=`ls /opt | grep libreoffice | tail -n 1`
   if [ "$lofromdffolder" != "" ]; then
     loinstalledver=`dpkg -l | grep -m 1 libreoffice[0-9].[0-9] | grep -o [0-9].[0-9].[0-9] | head -n 1`
     loinstalledver_second_number=`echo -e $loinstalledver | cut -c 3`
@@ -516,18 +516,18 @@ detect_lo_from_df_website(){
 #---------------------------
 # Download temp files / Pobieranie plików tymczasowych
 download_lo_files(){
-  wget http://download.documentfoundation.org/libreoffice/stable/$lolastversion/deb/$archdir/LibO_"$lolastversion"_Linux_"$archfile"_install-deb_en-US.tar.gz -O "$tmpdir/install.tar.gz"
-  wget http://download.documentfoundation.org/libreoffice/stable/$lolastversion/deb/$archdir/LibO_"$lolastversion"_Linux_"$archfile"_langpack-deb_pl.tar.gz -O "$tmpdir/langpack.tar.gz"
-  wget http://download.documentfoundation.org/libreoffice/stable/$lolastversion/deb/$archdir/LibO_"$lolastversion"_Linux_"$archfile"_helppack-deb_pl.tar.gz -O "$tmpdir/helppack.tar.gz"
+  wget http://download.documentfoundation.org/libreoffice/stable/$lolastversion/deb/$archdir/LibreOffice_"$lolastversion"_Linux_"$archfile"_deb.tar.gz -O "$tmpdir/install.tar.gz"
+  wget http://download.documentfoundation.org/libreoffice/stable/$lolastversion/deb/$archdir/LibreOffice_"$lolastversion"_Linux_"$archfile"_deb_langpack_pl.tar.gz -O "$tmpdir/langpack.tar.gz"
+  wget http://download.documentfoundation.org/libreoffice/stable/$lolastversion/deb/$archdir/LibreOffice_"$lolastversion"_Linux_"$archfile"_deb_helppack_pl.tar.gz -O "$tmpdir/helppack.tar.gz"
 }
 #---------------------------
 # Check sha-256 sum / Sprawdzanie sumy sha-256
 check_sha256sum(){
-  sha256instorig=`wget http://download.documentfoundation.org/libreoffice/stable/$lolastversion/deb/$archdir/LibO_"$lolastversion"_Linux_"$archfile"_install-deb_en-US.tar.gz.sha256 -q -O /dev/stdout | grep Lib0* | awk '{print $1}'`
+  sha256instorig=`wget http://download.documentfoundation.org/libreoffice/stable/$lolastversion/deb/$archdir/LibreOffice_"$lolastversion"_Linux_"$archfile"_deb.tar.gz.sha256 -q -O - | grep Lib0* | awk '{print $1}'`
   sha256instdown=`sha256sum "$tmpdir/install.tar.gz" | awk '{print $1}'`
-  sha256langorig=`wget http://download.documentfoundation.org/libreoffice/stable/$lolastversion/deb/$archdir/LibO_"$lolastversion"_Linux_"$archfile"_langpack-deb_pl.tar.gz.sha256 -q -O /dev/stdout | grep Lib0* | awk '{print $1}'`
+  sha256langorig=`wget http://download.documentfoundation.org/libreoffice/stable/$lolastversion/deb/$archdir/LibreOffice_"$lolastversion"_Linux_"$archfile"_deb_langpack_pl.tar.gz.sha256 -q -O - | grep Lib0* | awk '{print $1}'`
   sha256langdown=`sha256sum "$tmpdir/langpack.tar.gz" | awk '{print $1}'`
-  sha256helporig=`wget http://download.documentfoundation.org/libreoffice/stable/$lolastversion/deb/$archdir/LibO_"$lolastversion"_Linux_"$archfile"_helppack-deb_pl.tar.gz.sha256 -q -O /dev/stdout | grep Lib0* | awk '{print $1}'`
+  sha256helporig=`wget http://download.documentfoundation.org/libreoffice/stable/$lolastversion/deb/$archdir/LibreOffice_"$lolastversion"_Linux_"$archfile"_deb_helppack_pl.tar.gz.sha256 -q -O - | grep Lib0* | awk '{print $1}'`
   sha256helpdown=`sha256sum "$tmpdir/helppack.tar.gz" | awk '{print $1}'`
   if [ "$sha256instorig" != "$sha256instdown" -o "$sha256langorig" != "$sha256langdown" -o "$sha256helporig" != "$sha256helpdown" ]; then
     clear
@@ -587,7 +587,7 @@ install_deb_files(){
   echo -en "$installation_complete_text""$Y_n"
   read_from_stdin a
   uppercase $a ; a="$anwser"
-  if ["$a" = "N" ]; then
+  if [ "$a" = "N" ]; then
     exit 0;
   fi
   rm_tmp_files
