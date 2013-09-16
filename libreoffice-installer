@@ -57,7 +57,7 @@
 ## Jeśli nie, zobacz <http://www.gnu.org/licenses/>.
 #---------------------------
 # Version / Wersja
-VESRION=0.2.95
+VESRION=0.2.96
 #---------------------------
 # TRANSLATEABLE STRING / ŁAŃCUCHY DO TŁUMACZENIA
 # WARNING
@@ -330,8 +330,8 @@ parameters(){
     *)
       first_option=$1
       case $LANG in
-	pl*) error_unknown_option_text="$program_name: Nieznana opcja '$unknown_option'\nWykonaj '$program_name --help'  dla uzyskania informacji." ;;
-	*) error_unknown_option_text="$program_name: Unknown option '$unknown_option'\nRun '$program_name --help'  for more information." ;;
+	pl*) error_unknown_option_text="$program_name: Nieznana opcja '$first_option'\nWykonaj '$program_name --help'  dla uzyskania informacji." ;;
+	*) error_unknown_option_text="$program_name: Unknown option '$first_option'\nRun '$program_name --help'  for more information." ;;
       esac
       echo -e "$error_unknown_option_text"
       exit 1;
@@ -462,7 +462,7 @@ detect_arch(){
 # Check LibreOffice version / Sprawdzanie wersji LibreOffice
 check_last_lo_version(){
   echo -e "$last_version_checking_text"
-  lolastversion=`wget http://www.libreoffice.org/download/ -q -T 10 -O - | grep -o "version [0-9].[0-9].." | awk '{print $2}'`
+  lolastversion=`wget http://www.libreoffice.org/download/ -q -T 10 -O - | grep -m1 -o "version [0-9].[0-9].." | awk '{print $2}'`
   lolastversion_second_number=`echo -e $lolastversion | cut -c 3`
   if [ "$lolastversion" = "" ]; then
     echo -e "$checking_error_text"
@@ -494,7 +494,7 @@ detect_lo_from_repo(){
 detect_lo_from_df_website(){
   lofromdffolder=`ls /opt | grep libreoffice | tail -n 1`
   if [ "$lofromdffolder" != "" ]; then
-    loinstalledver=`dpkg -l | grep -m 1 libreoffice[0-9].[0-9] | grep -o [0-9].[0-9].[0-9] | head -n 1`
+    loinstalledver=`dpkg -l | grep -m 1 libreoffice[0-9].[0-9] | grep ii | grep -o [0-9].[0-9].[0-9] | head -n 1`
     loinstalledver_second_number=`echo -e $loinstalledver | cut -c 3`
     if [ "$loinstalledver" = "$lolastversion" ]; then
       echo -e "$lo_lastest_version_already_installed_text"
@@ -531,6 +531,7 @@ check_sha256sum(){
   sha256helpdown=`sha256sum "$tmpdir/helppack.tar.gz" | awk '{print $1}'`
   if [ "$sha256instorig" != "$sha256instdown" -o "$sha256langorig" != "$sha256langdown" -o "$sha256helporig" != "$sha256helpdown" ]; then
     clear
+# DEBUG echo -e "$sha256instorig\n$sha256instdown\n$sha256helporig\n$sha256helpdown\n$sha256langorig\n$sha256langdown"
     echo -e "$corrupted_files_error_text"
     exit 1;
   fi
@@ -563,7 +564,9 @@ detect_kde(){
 enable_kde_integration(){
   installdir=`ls /opt |grep libreoffice`
   libstdc_path=`find "/opt/$installdir" -name *libstdc++* | grep libstdc++ | grep -v orig`
-  sudo -p "$enter_root_pass_to_integrate_with_kde" mv $libstdc_path "$libstdc_path"_orig  || exit 1;
+  if [ "$libstdc_path" != "" ]; then
+    sudo -p "$enter_root_pass_to_integrate_with_kde" mv $libstdc_path "$libstdc_path"_orig  || exit 1;
+  fi
 }
 #---------------------------
 # Installation / Instalacja
